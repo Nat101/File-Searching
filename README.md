@@ -2,31 +2,26 @@
 
 
 # Project Description and Instructions
+
+# Part 1- File-Searching
+
 Download the file called nanpa. This file contains quite a comprehensive list of North American phone number prefixes, six digits long each, followed by a string describing the location served by phone numbers starting with this prefix. On each line, the string is right next to the six digit prefix. It is suffixed with spaces so it is always exactly 25 digits long. Each line is separated from the next line by one next-line character ’\n’. Hence each line consists of exactly 6 + 25 + 1 = 32 characters. The nanpa file is sorted by ascending prefixes. However, there are certain prefixes that do not correspond to any location: these prefixes do not figure in the file.
-You saw last week that searching for a certain prefix in the nanpa file is possible in O(n) using the Lin- ux/UNIX/POSIX tools grep and sed. However, this method is not optimal from a complexity standpoint: a look-up in an ordered array or file can be done in O(log n).
-For this section of the homework assignment, you must write, in C, a tool named findlocationfast that always takes two arguments: a filename and a prefix. The filename corresponds to a file organized like the nanpa file. The prefix must consist of six digits, which are all numerical (’0’ through ’9’). The tool must open the file and search it for the location identified by the prefix specified by the second argument. If a corresponding line is found, the line must be output on standard output, after stripping the superfluous spaces in the end (and, of course, without the prefix). The look-up must be performed in O(log n) whenever the underlying filesystem allows this complexity to be reached; however, see the remark below.
-3
-When the look-up is successful, a zero exit condition code must be returned. When no line correspond- ing to the sought prefix figures in the file, the exit condition code must be non-zero; no error message is displayed in this case. If the file cannot be opened, the prefix received in argument is not well-formed (not exactly 6 digits, other characters than the digits ’0’ through ’9’) or any other error occurs, an error message must be displayed on standard error and the tool must exit with a non-zero condition code. In any case, the file, once opened, must be closed before exiting. The tool must not perform any access outside its memory space in any case and must terminate execution with a proper error message (on standard error)
-2 and exit code, even if the file it is given to work on is not formatted like the nanpa file .
+
+Write, in C, a tool named findlocationfast that always takes two arguments: a filename and a prefix. The filename corresponds to a file organized like the nanpa file. The prefix must consist of six digits, which are all numerical (’0’ through ’9’). The tool must open the file and search it for the location identified by the prefix specified by the second argument. If a corresponding line is found, the line must be output on standard output, after stripping the superfluous spaces in the end (and, of course, without the prefix). The look-up must be performed in O(log n) whenever the underlying filesystem allows this complexity to be reached; however, see the remark below.
+
+When the look-up is successful, a zero exit condition code must be returned. When no line correspond- ing to the sought prefix figures in the file, the exit condition code must be non-zero; no error message is displayed in this case. If the file cannot be opened, the prefix received in argument is not well-formed (not exactly 6 digits, other characters than the digits ’0’ through ’9’) or any other error occurs, an error message must be displayed on standard error and the tool must exit with a non-zero condition code. In any case, the file, once opened, must be closed before exiting. The tool must not perform any access outside its memory space in any case and must terminate execution with a proper error message (on standard error) and exit code, even if the file it is given to work on is not formatted like the nanpa file .
+
 You are supposed to base your program only on the system calls open, read, write, lseek and close. You are not supposed to use level-3 buffered file manipulation calls, like fopen, fread, fprintf, printf, etc. Your tool may assume that the file to search is less than 2147483648 bytes in size. Your tool is not supposed to allocate any memory (using malloc or calloc); using statically sized buffers on the stack is fine. The tool is not supposed to use strlen, strcmp, memset, memcpy or memmove; these functions are trivial to implement: just implement your own.
+
 Not all Linux/UNIX files and corresponding file descriptors are seekable, i.e. the lseek system call fails on them. Your tool may assume that the filename it is given in argument corresponds to a file that is seekable. However, the tool must properly exit with an appropriate error message (on standard error) and non-zero exit condition, if the file is not seekable. You are required to find an example with which this particular error can be triggered: report on this example in your write-up. Your findlocation script you wrote for the last homework assignment should work on that example. To help you, the instructor recommends looking into what the Linux/UNIX/POSIX command mkfifo does and working with the kind of “file” created with mkfifo.
+
 Once your tool works correctly, test it on various examples. Also run it through strace and try to understand the output produced by strace. Based on what you see with strace, write some explanation why you are convinced that the look-ups take O(log n) time on your typical (SSD) hard-disk and why the instructor should share this conviction. Then think of some storage technology whose ugly interface the Operating System will try to hide in order to allow you to use open, read and lseek for your search but for which the look-up will still be in O(n).
-3
-For this section, you have to submit:
-• The source file findlocationfast.c which can be compiled to findlocationfast using
-gcc -Wall -O3 -o findlocationfast findlocationfast.c.
-• A section in your report explaining the software engineering decisions you made, the problems you
-encountered, the testing you performed and the explanations you found.
-Mapping files to memory
+
+# Part 2- Mapping files to memory
+
 A typical POSIX-compatible environment supports the mmap system call. This system call allows for map- ping the contents of a file on the filesystem, described by a file handle obtained with open, into memory: the mmap call returns a pointer which, when dereferenced, allows for reading the memory-mapped file by reading at the address given by the pointer, and for writing to the file, by writing to memory at the address provided by the pointer.
-For this section of the homework assignment, you must write, in C, a tool named findlocationfastmemory which performs the same task as the tool findlocation you wrote
-2Try executing it on various other files, like a JPEG picture of a cat, a MP3 file with a song etc. 4
- 
-for the last section of this homework assignment. The difference is that findlocationfastmemory uses mmap to map the used file into memory.
+
+For this section of the homework assignment, you must write, in C, a tool named findlocationfastmemory which performs the same task as the tool findlocation you wrote for the last section of this homework assignment. The difference is that findlocationfastmemory uses mmap to map the used file into memory.
+
 You are supposed to base your program only on the system calls open, lseek, mmap, munmap and close. You are not supposed to use level-3 buffered file manipulation calls, like fopen, fread, fprintf etc. Your tool may assume that the file to search is less than 2147483648 bytes in size. Your tool must not leak any memory, the memory-mapped region must be properly unmapped using munmap. All files opened must be properly closed. The status codes to be returned are the same as for findlocationfast. Your tool is not supposed to allocate any memory (using malloc or calloc) other than the memory obtained with mmap; using statically sized buffers on the stack is fine. The tool is not supposed to use strlen, strcmp, memset, memcpy or memmove; these functions are trivial to implement: just implement your own. The lookup algorithm must have O(log n) time complexity. The tool may gracefully3 fail on files that are non-regular or non-seekable.
-4
-For this section, you have to submit:
-• The source file findlocationfast.c which can be compiled to findlocationfast using
-gcc -Wall -O3 -o findlocationfastmemory findlocationfastmemory.c.
-• A section in your report explaining the software engineering decisions you made, the problems you
-encountered, the testing you performed and the explanations you found.
+
